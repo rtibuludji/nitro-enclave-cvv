@@ -21,6 +21,32 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let region_provider = RegionProviderChain::default_provider().or_else("us-east-1");
     let config = aws_config::from_env().region(region_provider).load().await;
 
+    let secret_client = aws::create_secret_client(&config)
+    let kms_client = KmsClient::new(&config);
+
+    let listener = VsockListener::bind(2, 3000)?;
+    println!("Listening on vsock port 3000 (CID: 2)");
+
+    // Accept connections in a loop
+    loop {
+        // BORROW CHECKER: accept() returns ownership of stream
+        let (stream, peer_addr) = listener.accept().await?;
+        println!("Connection from: {:?}", peer_addr);
+
+        // BORROW CHECKER: Clone clients for each task
+        // AWS SDK clients use Arc internally, so clone is cheap
+        let secrets_client = secrets_client.clone();
+        let kms_client = kms_client.clone();
+
+        // BORROW CHECKER: Spawn task with 'move' to transfer ownership
+        // The task needs to OWN these values to outlive this loop iteration
+        tokio::spawn(async move {
+            if let Err(e) = vsock::handle_client(stream, secrets_client, kms_client).await {
+                eprintln!("Error handling client: {}", e);
+            }
+        });
+    }    
+
     Ok(())
 }
 
