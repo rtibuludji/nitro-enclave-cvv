@@ -1,0 +1,13 @@
+[package]
+name = "nitro-cvv-client-test"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+nitro = { path = "../nitro-rs" }
+
+anyhow = { workspace = true }
+
+tokio       = { workspace = true }
+tokio-util  = { workspace = true }
+tokio-vsock = { workspace = true }

@@ -1,0 +1,16 @@
+[package]
+name = "nitro-tokio"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+nitro = { path = "../nitro-rs" }
+
+anyhow = { workspace = true }
+
+tokio       = { workspace = true }
+tokio-util  = { workspace = true }
+tokio-vsock = { workspace = true }
+
+log = "0.4"
+env_logger = "0.11"
