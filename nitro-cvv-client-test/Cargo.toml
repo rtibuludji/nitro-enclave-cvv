@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 nitro = { path = "../nitro-rs" }
+nitro-tokio = { path = "../nitro-tokio" }
 
 anyhow = { workspace = true }
 
