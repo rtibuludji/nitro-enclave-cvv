@@ -4,7 +4,14 @@ use tokio_vsock::{
     VsockStream
 };
 
+use nitro::message::{GetKeyRequest};
+
 pub async fn test(cid: u32, port: u32) -> Result<()> {
+
+
+    let key_id: &str = "test.test.cvka";
+
+    let _request = GetKeyRequest::new(*b"0000", key_id.as_bytes().to_vec());
     
     let host_addr = VsockAddr::new(cid, port);
     println!("Connecting to vsock CID {} port {}/{}...", cid, port, host_addr);

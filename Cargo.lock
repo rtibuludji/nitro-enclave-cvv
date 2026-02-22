@@ -1483,6 +1483,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "nitro",
+ "nitro-tokio",
  "tokio",
  "tokio-util",
  "tokio-vsock",
