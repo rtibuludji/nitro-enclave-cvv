@@ -1,0 +1,7 @@
+#!/bin/bash
+modprobe vsock
+modprobe vsock_diag
+modprobe vmw_vsock_virtio_transport_common
+modprobe vmw_vsock_virtio_transport
+modprobe vsock_loopback
+modprobe vhost_vsock
