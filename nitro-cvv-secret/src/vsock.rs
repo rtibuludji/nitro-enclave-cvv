@@ -1,4 +1,5 @@
 use anyhow::{Result};
+use std::sync::Arc;
 
 use tokio_vsock::VsockStream;
 use tokio::time::Duration;
@@ -12,9 +13,14 @@ use nitro::message::{
     GetKeyResponse
 };
 
+use aws_secretsmanager_caching::SecretsManagerCachingClient;
+use aws_sdk_kms::Client as KmsClient;
+
 
 pub async fn handle_client(
     mut stream: VsockStream,
+    _secret_client: Arc<SecretsManagerCachingClient>,
+    _kms_client: KmsClient,
     shutdown_token: CancellationToken,
 ) -> Result<()> {
     log::info!("Client connected, started");
@@ -51,6 +57,9 @@ pub async fn handle_client(
                 // TODO: Process request and send response
                 // let response = process_key_request(request).await?;
                 // write(&mut stream, &response.to_bytes(), None, &shutdown_token, "response").await?;
+
+
+                
 
                 let response = GetKeyResponse::error(*b"0000", *b"01");
                 let timeout  = Some(Duration::from_secs(60));

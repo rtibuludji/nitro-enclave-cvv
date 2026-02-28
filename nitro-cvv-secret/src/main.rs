@@ -2,6 +2,7 @@
 use anyhow::{Result, Context};
 use anyhow::anyhow;
 use std::env;
+use std::sync::Arc;
 
 use tokio::signal;
 use tokio_util::sync::CancellationToken;
@@ -12,10 +13,16 @@ use tokio_vsock::{
 };
 use nitro;
 
+use aws_config::meta::region::RegionProviderChain;
+use aws_config::BehaviorVersion;
+use aws_secretsmanager_caching::SecretsManagerCachingClient;
+use aws_sdk_kms::Client as KmsClient;
+
+mod aws;
 mod vsock;
 
 const DEFAULT_PORT: u32 = 3000;
-async fn run_server(listen_port: u32) -> Result<()> {
+async fn run_server(listen_port: u32, aws_secret_client: Arc<SecretsManagerCachingClient>, aws_kms_client: KmsClient) -> Result<()> {
 
     let shutdown_token = CancellationToken::new();
     let server_token   = shutdown_token.clone();
@@ -44,11 +51,16 @@ async fn run_server(listen_port: u32) -> Result<()> {
                     Ok((client_stream, client_addr)) => {
                         log::info!("accept connection from {}", client_addr);
 
-
-                        let handler_token = shutdown_token.child_token();
+                        let secret_client  = Arc::clone(&aws_secret_client);
+                        let kms_client     = aws_kms_client.clone();
+                        let handler_token  = shutdown_token.child_token();
 
                         tokio::spawn(async move {
-                            if let Err(e) = vsock::handle_client(client_stream, handler_token).await {
+                            if let Err(e) = vsock::handle_client(
+                                client_stream, 
+                                secret_client,
+                                kms_client,
+                                handler_token).await {
                                 log::error!("error handling client from {}: {}", client_addr, e);
                             }
                             else {
@@ -79,6 +91,25 @@ async fn main() -> Result<()> {
 
     log::info!("starting ...");
 
+    let region_provider = RegionProviderChain::default_provider().or_else("us-east-1");
+    let config = aws_config::defaults(BehaviorVersion::latest())
+        .region(region_provider)
+        .load()
+        .await;
+
+    let secret_client = Arc::new(aws::create_secret_client(&config).await?);
+    let kms_client    = KmsClient::new(&config);
+    log::info!("AWS clients initialized");
+
+    log::info!("Validating AWS credentials...");
+    match aws::validate_credentials(&kms_client).await {
+        Ok(()) => log::info!("AWS credentials validated successfully"),
+        Err(e) => {
+            log::error!("AWS credential validation failed: {}", e);
+            return Err(e);
+        }
+    }
+
     let listen_port = env::var("SECRET_PORT")
         .ok()
         .and_then(|v| {
@@ -95,7 +126,7 @@ async fn main() -> Result<()> {
             DEFAULT_PORT
         });
 
-    match run_server(listen_port).await {
+    match run_server(listen_port, secret_client, kms_client).await {
         Ok(()) => {
             log::info!("server exited gracefully");
             Ok(())

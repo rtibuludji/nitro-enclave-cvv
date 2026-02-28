@@ -2,9 +2,11 @@ use anyhow::{Result, Context};
 use aws_config::SdkConfig;
 use aws_sdk_secretsmanager::Client as SecretsManagerClient;
 use aws_secretsmanager_caching::SecretsManagerCachingClient;
+use aws_sdk_kms::Client as KmsClient;
 
 use std::num::NonZeroUsize;
 use std::time::Duration;
+
 
 const CACHE_SIZE: NonZeroUsize = unsafe { NonZeroUsize::new_unchecked(1000) };
 const CACHE_TTL: Duration = Duration::from_secs(300);
@@ -39,4 +41,16 @@ pub async fn fetch_secret(
         .ok_or_else(|| anyhow::anyhow!("Secret '{}' has no string value", secret_name))?;
           
     Ok(secret_string)
+}
+
+pub async fn validate_credentials(kms_client: &KmsClient) -> Result<()> {
+    kms_client
+        .list_keys()
+        .limit(1)
+        .send()
+        .await
+        .map_err(|e| anyhow::anyhow!("Failed to validate AWS credentials: {}", e))?;
+    
+    log::debug!("AWS credentials validated successfully");
+    Ok(())
 }

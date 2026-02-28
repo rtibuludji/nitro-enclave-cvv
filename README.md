@@ -16,3 +16,8 @@ The project demonstrates how sensitive cryptographic logic can be isolated from 
 
 The system is composed of multiple Rust components running either on the **EC2 parent instance** or inside the **Nitro Enclave**.
 
+
+
+
+## AWS Resource & Links:
+- [Using cryptographic attestation with AWS KMS](https://docs.aws.amazon.com/enclaves/latest/user/kms.html)
