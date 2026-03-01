@@ -97,7 +97,7 @@ async fn process_key_request(
         Ok(id) if !id.is_empty() => id,
         _ => {
             log::warn!("KMS_KEY_ID not defined in environment use default nitro-kms-key");
-            "nitro-kms-key".to_string()
+            "alias/nitro-kms-key".to_string()
         }
     };
 
