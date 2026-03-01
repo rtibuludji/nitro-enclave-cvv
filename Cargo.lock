@@ -275,9 +275,9 @@ dependencies = [
 
 [[package]]
 name = "aws-sdk-sts"
-version = "1.98.0"
+version = "1.99.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "89c4f19655ab0856375e169865c91264de965bd74c407c7f1e403184b1049409"
+checksum = "9acba7c62f3d4e2408fa998a3a8caacd8b9a5b5549cf36e2372fbdae329d5449"
 dependencies = [
  "aws-credential-types",
  "aws-runtime",
@@ -1533,6 +1533,7 @@ dependencies = [
  "aws-config",
  "aws-sdk-kms",
  "aws-sdk-secretsmanager",
+ "aws-sdk-sts",
  "aws_secretsmanager_caching",
  "base64 0.21.7",
  "log",

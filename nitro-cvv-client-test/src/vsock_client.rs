@@ -12,7 +12,7 @@ use nitro_tokio::message_utils::{write_message, read_message};
 
 pub async fn test(cid: u32, port: u32) -> Result<()> {
 
-    let key_id: &str = "test.test.cvka";
+    let key_id: &str = "test.cvka";
 
     let host_addr = VsockAddr::new(cid, port);
     println!("Connecting to vsock CID {} port {}/{}...", cid, port, host_addr);

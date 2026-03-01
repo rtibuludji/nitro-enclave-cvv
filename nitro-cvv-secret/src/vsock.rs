@@ -10,17 +10,19 @@ use nitro_tokio::message_utils::{read_message, write_message};
 use nitro::utils;
 use nitro::message::{
     Message,
-    GetKeyResponse
+    GetKeyRequest,
+    GetKeyResponse,
 };
 
 use aws_secretsmanager_caching::SecretsManagerCachingClient;
 use aws_sdk_kms::Client as KmsClient;
 
+use crate::aws;
 
 pub async fn handle_client(
     mut stream: VsockStream,
-    _secret_client: Arc<SecretsManagerCachingClient>,
-    _kms_client: KmsClient,
+    secret_client: Arc<SecretsManagerCachingClient>,
+    kms_client: KmsClient,
     shutdown_token: CancellationToken,
 ) -> Result<()> {
     log::info!("Client connected, started");
@@ -53,17 +55,10 @@ pub async fn handle_client(
         match message {
             Message::GetKeyRequest(request) => {
                 log::info!("Key request for: {}", request.key_id_str());
-                
-                // TODO: Process request and send response
-                // let response = process_key_request(request).await?;
-                // write(&mut stream, &response.to_bytes(), None, &shutdown_token, "response").await?;
 
+                let response = process_key_request(&request, &secret_client, &kms_client).await;
 
-                
-
-                let response = GetKeyResponse::error(*b"0000", *b"01");
                 let timeout  = Some(Duration::from_secs(60));
-
                 let written = write_message(
                     &mut stream,
                     &response.to_bytes(),
@@ -87,4 +82,75 @@ pub async fn handle_client(
 
     log::info!("Connection closed");
     Ok(())
+}
+
+async fn process_key_request(
+    request: &GetKeyRequest,
+    secrets_client: &SecretsManagerCachingClient,
+    kms_client: &KmsClient,
+) -> GetKeyResponse {
+
+    let key_id = request.key_id_str();
+    let hdr    = request.header.hdr;
+
+    let kms_key_id = match std::env::var("KMS_KEY_ID") {
+        Ok(id) if !id.is_empty() => id,
+        _ => {
+            log::warn!("KMS_KEY_ID not defined in environment use default nitro-kms-key");
+            "nitro-kms-key".to_string()
+        }
+    };
+
+    let secret = match aws::fetch_secret(secrets_client, &key_id).await {
+        Ok(s) => s,
+        Err(e) => {
+            let error_msg = e.to_string();
+            log::error!("Failed to fetch secret '{}': {}", key_id, error_msg);
+
+            if error_msg.contains("ResourceNotFoundException") 
+                || error_msg.contains("not found") {
+                log::warn!("Secret '{}' not found", key_id);
+                return GetKeyResponse::error(hdr, *b"01");
+            } else if error_msg.contains("AccessDenied") 
+                || error_msg.contains("not authorized") {
+                log::warn!("Access denied to secret '{}'", key_id);
+                return GetKeyResponse::error(hdr, *b"97");
+            } else {
+                log::error!("Unknown error fetching secret: {}", error_msg);
+                return GetKeyResponse::error(hdr, *b"99");
+            }
+        }
+    };
+    
+    log::debug!("Secret fetched successfully ({} bytes)", secret.len());
+
+    let encrypted = match aws::encrypt_with_kms(
+        kms_client,
+        &kms_key_id,
+        secret.as_bytes()
+    ).await {
+        Ok(e) => e,
+        Err(e) => {
+            let error_msg = e.to_string();
+            log::error!("Failed to encrypt with KMS: {}", error_msg);
+            
+            // Determine specific error code
+            if error_msg.contains("AccessDenied") 
+                || error_msg.contains("not authorized") {
+                log::warn!("Access denied to KMS key '{}'", kms_key_id);
+                return GetKeyResponse::error(hdr, *b"02");
+            } else if error_msg.contains("NotFoundException")
+                || error_msg.contains("not found") {
+                log::warn!("KMS key '{}' not found", kms_key_id);
+                return GetKeyResponse::error(hdr, *b"03");
+            } else {
+                log::error!("Encryption failed: {}", error_msg);
+                return GetKeyResponse::error(hdr, *b"04");
+            }
+        }
+    };
+    
+    log::info!("Successfully encrypted key '{}' ({} bytes)", key_id, encrypted.len());
+
+    GetKeyResponse::success(hdr, encrypted)
 }

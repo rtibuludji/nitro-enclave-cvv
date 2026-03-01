@@ -21,3 +21,4 @@ The system is composed of multiple Rust components running either on the **EC2 p
 
 ## AWS Resource & Links:
 - [Using cryptographic attestation with AWS KMS](https://docs.aws.amazon.com/enclaves/latest/user/kms.html)
+- https://github.com/aws/aws-nitro-enclaves-sdk-c/blob/main/docs/kmstool.md

@@ -102,7 +102,7 @@ async fn main() -> Result<()> {
     log::info!("AWS clients initialized");
 
     log::info!("Validating AWS credentials...");
-    match aws::validate_credentials(&kms_client).await {
+    match aws::validate_credentials(&config).await {
         Ok(()) => log::info!("AWS credentials validated successfully"),
         Err(e) => {
             log::error!("AWS credential validation failed: {}", e);
