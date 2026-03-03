@@ -10,9 +10,9 @@ pub struct GetKeyRequest {
 }
 
 impl GetKeyRequest {
-    pub fn new(hdr: [u8; 4], key_id: Vec<u8>) -> Self {
+    pub fn new(hdr: [u8; 4], key_id: Vec<u8>) -> Result<Self> {
         let header = MessageHeader::new(hdr, CMD_GETKEY_REQUEST, key_id.len());
-        Self { header, key_id }
+        Ok(Self { header, key_id })
     }
 
     pub fn key_id_str(&self) -> String {

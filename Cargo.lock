@@ -1521,8 +1521,20 @@ version = "0.1.0"
 name = "nitro-cvv-host"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
+ "aws-config",
+ "aws-sdk-kms",
+ "base64 0.21.7",
  "des",
  "hex",
+ "log",
+ "nitro",
+ "nitro-tokio",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tokio-util",
+ "tokio-vsock",
 ]
 
 [[package]]

@@ -5,6 +5,9 @@ use tokio_vsock::VsockStream;
 use tokio::time::Duration;
 use tokio_util::sync::CancellationToken;
 
+use aws_secretsmanager_caching::SecretsManagerCachingClient;
+use aws_sdk_kms::Client as KmsClient;
+
 use nitro_tokio::message_utils::{read_message, write_message};
 
 use nitro::utils;
@@ -13,9 +16,6 @@ use nitro::message::{
     GetKeyRequest,
     GetKeyResponse,
 };
-
-use aws_secretsmanager_caching::SecretsManagerCachingClient;
-use aws_sdk_kms::Client as KmsClient;
 
 use crate::aws;
 

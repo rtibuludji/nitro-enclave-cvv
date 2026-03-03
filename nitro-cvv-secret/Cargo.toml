@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-nitro = { path = "../nitro-rs" }
+nitro       = { path = "../nitro-rs" }
 nitro-tokio = { path = "../nitro-tokio" }
 
 anyhow = { workspace = true }
@@ -16,11 +16,12 @@ tokio-vsock = { workspace = true }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"
 
+base64 = "0.21"
+log    = "0.4"
+
 aws-config = "1.8.14"
-aws-sdk-secretsmanager = "1.100.0"
 aws-sdk-kms = "1.102.0"
+aws-sdk-sts = "1.99.0"
+aws-sdk-secretsmanager = "1.100.0"
 aws_secretsmanager_caching = "2.0.0"
 
-base64 = "0.21"
-log = "0.4"
-aws-sdk-sts = "1.99.0"

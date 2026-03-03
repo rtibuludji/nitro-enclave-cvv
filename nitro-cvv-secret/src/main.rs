@@ -11,15 +11,16 @@ use tokio_vsock::{
     VsockAddr,
     VsockListener,
 };
-use nitro;
 
 use aws_config::meta::region::RegionProviderChain;
 use aws_config::BehaviorVersion;
-use aws_secretsmanager_caching::SecretsManagerCachingClient;
 use aws_sdk_kms::Client as KmsClient;
+use aws_secretsmanager_caching::SecretsManagerCachingClient;
+
+use nitro;
 
 mod aws;
-mod vsock;
+mod session;
 
 const DEFAULT_PORT: u32 = 3000;
 async fn run_server(listen_port: u32, aws_secret_client: Arc<SecretsManagerCachingClient>, aws_kms_client: KmsClient) -> Result<()> {
@@ -56,7 +57,7 @@ async fn run_server(listen_port: u32, aws_secret_client: Arc<SecretsManagerCachi
                         let handler_token  = shutdown_token.child_token();
 
                         tokio::spawn(async move {
-                            if let Err(e) = vsock::handle_client(
+                            if let Err(e) = session::handle_client(
                                 client_stream, 
                                 secret_client,
                                 kms_client,
