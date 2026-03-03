@@ -23,3 +23,5 @@ log    = "0.4"
 
 aws-config = "1.8.14"
 aws-sdk-kms = "1.102.0"
+aws-nitro-enclaves-nsm-api = "0.4.0"
+serde_bytes = "0.11.19"

@@ -166,11 +166,6 @@ impl VerifyCVVRequest {
     }
 }
 
-
-
-
-
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct VerifyCVVResponse {
     pub header: MessageHeader,

@@ -6,9 +6,16 @@ pub use header::{MessageHeader, MSGHDR_LEN_SIZE, MSGHDR_HDR_SIZE, MSGHDR_CMD_SIZ
 
 pub use commands::{
     Message, 
+    VerifyCVVRequest,
+    VerifyCVVResponse,
     GetKeyRequest, 
-    GetKeyResponse
+    GetKeyResponse,
 };
 
 // Re-export command constants
-pub use commands::command::{CMD_GETKEY_REQUEST, CMD_GETKEY_RESPONSE};
+pub use commands::command::{
+    CMD_VERIFYCVV_REQUEST,
+    CMD_VERIFYCVV_RESPONSE,
+    CMD_GETKEY_REQUEST, 
+    CMD_GETKEY_RESPONSE
+};

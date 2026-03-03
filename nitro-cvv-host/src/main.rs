@@ -16,6 +16,7 @@ use aws_sdk_kms::Client as KmsClient;
 
 use nitro;
 
+mod aws;
 mod session;
 
 const DEFAULT_PORT: u32 = 3100;
